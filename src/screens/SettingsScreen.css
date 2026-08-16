@@ -1,0 +1,171 @@
+/* Settings: a stack of cards, one per group of preferences. */
+
+.set__body {
+  padding: var(--s-3) 0 calc(var(--s-6) + var(--safe-bottom));
+}
+
+.set__section {
+  padding: 0 calc(var(--s-4) + var(--safe-right)) 0 calc(var(--s-4) + var(--safe-left));
+  margin-bottom: var(--s-5);
+}
+
+.set__heading {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0 var(--s-2) var(--s-2);
+}
+
+.set__card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-2) var(--s-4);
+}
+
+/* Separators between the direct children of a card, but not around the
+   nested blocks that already sit on their own background. */
+.set__card > * + *:not(.pdfopt__nested) {
+  border-top: 1px solid var(--border);
+  padding-top: var(--s-2);
+}
+
+.set__row {
+  padding: var(--s-3) 0;
+}
+
+.set__row-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: var(--s-2);
+}
+
+/* Rows that act like buttons ---------------------------------------- */
+
+.set__action {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 52px;
+  padding: var(--s-2) 0;
+  text-align: left;
+  color: var(--text);
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.set__action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.set__action.is-danger {
+  color: var(--danger);
+}
+
+.set__action-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.set__action-label {
+  font-weight: 500;
+}
+
+.set__action-hint {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.set__chevron {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+/* Read-only rows ---------------------------------------------------- */
+
+.set__info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.set__info-value {
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.set__note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-3);
+  padding: var(--s-2) 0;
+}
+
+.set__about {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+  padding: var(--s-3) 0;
+}
+
+.set__cta {
+  padding: var(--s-3) 0;
+}
+
+/* Storage ----------------------------------------------------------- */
+
+.set__usage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3) 0;
+}
+
+.set__usage-line {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.set__usage-line strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.set__usage-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.set__usage-loading .set__note {
+  padding: 0;
+}
+
+/* Dialogs ----------------------------------------------------------- */
+
+.set__passcode .opt-row:first-child {
+  margin-top: 0;
+}
+
+.set__passcode input {
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3em;
+}
+
+.set__error {
+  margin-top: var(--s-2);
+  font-size: 13px;
+  color: var(--danger);
+}

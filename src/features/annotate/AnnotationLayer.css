@@ -1,0 +1,303 @@
+/*
+ * Annotation layer, its selection frame and the annotate-mode tool bar.
+ *
+ * The layer is laid over the page image inside whatever zoom transform the
+ * viewer applies, so anything that must keep a constant on-screen size — grab
+ * handles, the selection outline — is scaled by `--annot-z`, the reciprocal of
+ * the current zoom that the viewer writes onto the page element.
+ */
+
+.annot {
+  position: absolute;
+  inset: 0;
+  /* Marks and handles opt back in; taps on bare page reach the viewer. */
+  pointer-events: none;
+}
+
+.annot__capture {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: auto;
+  /* Every pointer here is a drawing gesture, never a scroll. */
+  touch-action: none;
+}
+
+/* With the selection tool the capture sheet drops below the marks so a tap
+   lands on the mark itself. */
+.annot--select .annot__capture {
+  z-index: 0;
+}
+
+.annot__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.annot__ink {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.annot__hit {
+  fill: none;
+  stroke: transparent;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.annot.is-active.annot--select .annot__hit {
+  pointer-events: stroke;
+  touch-action: none;
+}
+
+.annot__item {
+  position: absolute;
+  pointer-events: none;
+}
+
+.annot.is-active.annot--select .annot__item {
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.annot__text {
+  z-index: 2;
+  line-height: 1.25;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  /* The exporter draws its first line with the em box top on `y`; a DOM line
+     box centres the glyphs in its 1.25 leading, so the block is nudged up by
+     the half-leading to keep both in the same place. */
+  margin-top: -0.125em;
+}
+
+.annot__highlight {
+  z-index: 2;
+  /* Same blend the exporter uses, so the ink underneath still reads. */
+  mix-blend-mode: multiply;
+  border-radius: 1px;
+}
+
+.annot__redact {
+  z-index: 2;
+  /* Redaction is opaque black by definition, in every theme. */
+  background: #000000;
+}
+
+.annot__stamp {
+  z-index: 2;
+  /* Matches drawImage(x, y, w, h) in the exporter. */
+  object-fit: fill;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.annot__preview {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  outline: calc(1px * var(--annot-z, 1)) dashed rgba(0, 0, 0, 0.5);
+}
+
+.annot--redact .annot__preview {
+  background: #000000;
+  mix-blend-mode: normal;
+}
+
+/* Selection ---------------------------------------------------------- */
+
+.annot__frame {
+  position: absolute;
+  z-index: 7;
+  outline: calc(1.5px * var(--annot-z, 1)) dashed var(--accent);
+  outline-offset: calc(2px * var(--annot-z, 1));
+  pointer-events: none;
+}
+
+.annot__handle {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-2);
+  pointer-events: auto;
+  touch-action: none;
+  /* Handles stay finger sized whatever the page zoom is. */
+  transform: translate(-50%, -50%) scale(var(--annot-z, 1));
+}
+
+.annot__handle:active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.annot__handle--delete {
+  left: 0;
+  top: 0;
+  color: var(--danger);
+}
+
+.annot__handle--rotate {
+  left: 100%;
+  top: 0;
+}
+
+.annot__handle--move {
+  left: 0;
+  top: 100%;
+  color: var(--accent);
+}
+
+.annot__handle--resize {
+  left: 100%;
+  top: 100%;
+}
+
+/* Tool bar ----------------------------------------------------------- */
+
+.annot-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3) calc(var(--s-2) + var(--safe-bottom));
+  padding-left: calc(var(--s-3) + var(--safe-left));
+  padding-right: calc(var(--s-3) + var(--safe-right));
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--sh-3);
+}
+
+.annot-bar__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.annot-bar__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-1) 0;
+  border-top: 1px solid var(--border);
+}
+
+.annot-bar__options .slider {
+  padding: 0;
+}
+
+.annot-bar__tools {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.annot-bar__tools::-webkit-scrollbar {
+  display: none;
+}
+
+.annot-bar__tools .tool-btn {
+  flex: 1 0 auto;
+  min-width: 56px;
+  min-height: 52px;
+}
+
+/* Colour swatches ---------------------------------------------------- */
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+
+.swatches__chip {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-full);
+  border: 2px solid transparent;
+}
+
+.swatches__chip span {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  /* A white or pale swatch needs an edge to be visible on a light surface. */
+  border: 1px solid var(--border-strong);
+}
+
+.swatches__chip.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* Text editor -------------------------------------------------------- */
+
+.texted {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.texted__input {
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.4;
+}
+
+.texted__styles {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.texted__style {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.texted__style.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.texted__bold {
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.texted__italic {
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+}

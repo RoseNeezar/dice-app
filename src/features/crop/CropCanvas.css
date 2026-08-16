@@ -1,0 +1,163 @@
+/* Crop editor: fitted capture, quad overlay, handles and the loupe. */
+
+.crop {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.crop__frame {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-2);
+  /* Every gesture inside is handled by pointer code. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.crop__img {
+  position: absolute;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  max-width: none;
+}
+
+.crop__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * A corner pill rather than a full-screen scrim: re-rendering happens after
+ * every corner nudge, and covering the page each time would make the editor
+ * feel like it is fighting the user.
+ */
+.crop__busy {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  box-shadow: var(--sh-2);
+  z-index: 5;
+}
+
+.crop__overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.crop__dim {
+  fill: var(--scrim);
+}
+
+.crop__outline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.crop__thirds {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+/* Handles: 44px of hit area around a much smaller mark. */
+
+.crop__handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  touch-action: none;
+  z-index: 3;
+}
+
+.crop__dot,
+.crop__bar {
+  background: var(--surface);
+  border: 3px solid var(--accent);
+  box-shadow: var(--sh-1);
+  transition: transform var(--dur-1) var(--ease);
+}
+
+.crop__dot {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-full);
+}
+
+.crop__bar {
+  width: 30px;
+  height: 10px;
+  border-width: 2px;
+  border-radius: var(--r-full);
+}
+
+.crop__handle.is-active .crop__dot {
+  transform: scale(1.3);
+}
+
+.crop__handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -6px;
+}
+
+/* Actions */
+
+.crop__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-3) var(--s-2);
+  flex-shrink: 0;
+}
+
+/* Loupe (rendered by Magnifier.tsx, which has no stylesheet of its own). */
+
+.magnifier {
+  position: absolute;
+  z-index: 4;
+  border-radius: var(--r-full);
+  overflow: hidden;
+  border: 2px solid var(--surface);
+  box-shadow: var(--sh-3);
+  background-color: var(--surface-3);
+  pointer-events: none;
+}
+
+.magnifier__glass {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+}
+
+.magnifier__cross {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}

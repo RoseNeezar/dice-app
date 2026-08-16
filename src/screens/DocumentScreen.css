@@ -1,0 +1,122 @@
+/* One document: title bar, page grid, OCR progress and the colour picker. */
+
+.doc {
+  position: relative;
+}
+
+/* Title ------------------------------------------------------------ */
+
+.doc__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.doc__title:hover {
+  background: var(--surface-2);
+}
+
+.doc__title svg {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+.doc__flag {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-full);
+  flex-shrink: 0;
+}
+
+.doc__star {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 40px;
+  color: var(--warn);
+}
+
+/* OCR progress ----------------------------------------------------- */
+
+.doc__job {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-4) var(--s-3);
+  padding-left: calc(var(--s-4) + var(--safe-left));
+  padding-right: calc(var(--s-4) + var(--safe-right));
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+}
+
+.doc__job-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.doc__job-head span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Colour picker ---------------------------------------------------- */
+
+.doc__colours {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  gap: var(--s-3);
+  padding: var(--s-2) 0 var(--s-3);
+}
+
+.doc__swatch {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 56px;
+  min-height: 44px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  color: #fff;
+  box-shadow: var(--sh-1);
+  transition: transform var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+}
+
+/* "No colour" has no fill of its own, so it borrows the neutral surface. */
+.doc__swatch:first-child {
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+.doc__swatch.is-on {
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.doc__swatch:active {
+  transform: scale(0.93);
+}
+
+/* Pickers ---------------------------------------------------------- */
+
+.doc__picker-empty {
+  padding: var(--s-4) 0 var(--s-5);
+  text-align: center;
+  font-size: 14px;
+}

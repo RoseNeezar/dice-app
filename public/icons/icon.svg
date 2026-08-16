@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="OpenScan">
+  <title>OpenScan</title>
+  <rect width="512" height="512" fill="#2f6bff" />
+  <rect x="154" y="113" width="205" height="287" rx="23" fill="#ffffff" />
+  <g fill="#cfd6e4">
+    <rect x="184" y="148" width="143" height="17" rx="8.5" />
+    <rect x="184" y="187" width="143" height="17" rx="8.5" />
+    <rect x="184" y="307" width="143" height="17" rx="8.5" />
+    <rect x="184" y="346" width="89" height="17" rx="8.5" />
+  </g>
+  <rect x="125" y="240" width="261" height="24" rx="12" fill="#4ade80" />
+</svg>

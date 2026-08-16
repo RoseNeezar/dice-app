@@ -1,0 +1,179 @@
+/* The passcode screen. It replaces the whole app, so it owns the viewport. */
+
+.lock {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: calc(var(--s-5) + var(--safe-top)) calc(var(--s-4) + var(--safe-right))
+    calc(var(--s-5) + var(--safe-bottom)) calc(var(--s-4) + var(--safe-left));
+  background: var(--bg);
+}
+
+.lock__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(340px, 100%);
+}
+
+.lock__badge {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.lock__title {
+  margin-top: var(--s-4);
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.lock__status {
+  margin-top: var(--s-2);
+  /* Two lines of headroom so the keypad never jumps when a message appears. */
+  min-height: 2.8em;
+  max-width: 30ch;
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.lock__status.is-error {
+  color: var(--danger);
+}
+
+/* Dots ------------------------------------------------------------- */
+
+.lock__dots {
+  display: flex;
+  gap: var(--s-3);
+  margin-bottom: var(--s-6);
+}
+
+.lock__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+
+.lock__dot.is-filled {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.12);
+}
+
+.lock__dots.is-wrong {
+  animation: lock-shake 420ms var(--ease);
+}
+
+@keyframes lock-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-9px);
+  }
+  30% {
+    transform: translateX(9px);
+  }
+  45% {
+    transform: translateX(-6px);
+  }
+  60% {
+    transform: translateX(6px);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+}
+
+/* Keypad ----------------------------------------------------------- */
+
+.lock__pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  width: 100%;
+}
+
+.lock__gap {
+  display: block;
+}
+
+.lock__key {
+  display: grid;
+  place-items: center;
+  height: 68px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--sh-1);
+  transition: background var(--dur-1) var(--ease), transform var(--dur-1) var(--ease),
+    opacity var(--dur-1) var(--ease);
+}
+
+.lock__key:active:not(:disabled) {
+  background: var(--surface-3);
+  transform: scale(0.94);
+}
+
+.lock__key:disabled {
+  opacity: 0.4;
+}
+
+.lock__key--action {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--text-2);
+}
+
+.lock__foot {
+  margin-top: var(--s-5);
+  max-width: 34ch;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* Short viewports: keep the whole pad reachable without scrolling. */
+@media (max-height: 660px) {
+  .lock__badge {
+    display: none;
+  }
+
+  .lock__dots {
+    margin-bottom: var(--s-4);
+  }
+
+  .lock__pad {
+    gap: var(--s-3);
+  }
+
+  .lock__key {
+    height: 58px;
+    font-size: 21px;
+  }
+
+  .lock__foot {
+    display: none;
+  }
+}
