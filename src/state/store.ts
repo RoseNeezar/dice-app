@@ -21,22 +21,13 @@ import * as repo from '@/lib/db/repository';
 import { cv } from '@/lib/cv/client';
 import { blobSize, blobToRaster } from '@/lib/image/io';
 import { releaseBlobUrls } from '@/lib/image/blobUrls';
+import { goBack, goTo, type Route } from './navigation';
 
 /* ------------------------------------------------------------------ */
 /* Navigation                                                          */
 /* ------------------------------------------------------------------ */
 
-export type Route =
-  | { name: 'home' }
-  | { name: 'folder'; folderId: ID }
-  | { name: 'trash' }
-  | { name: 'search' }
-  | { name: 'doc'; docId: ID }
-  | { name: 'camera'; docId: ID; returnTo: Route }
-  | { name: 'review'; docId: ID }
-  | { name: 'edit'; docId: ID; pageId: ID }
-  | { name: 'viewer'; docId: ID; pageId: ID }
-  | { name: 'settings' };
+export type { Route } from './navigation';
 
 export interface Toast {
   id: number;
@@ -69,8 +60,6 @@ export interface AppState {
   folders: Record<ID, Folder>;
   settings: AppSettings;
 
-  route: Route;
-  stack: Route[];
   toasts: Toast[];
   /** True once the passcode has been entered this session. */
   unlocked: boolean;
@@ -82,7 +71,7 @@ export interface AppState {
 
   init: () => Promise<void>;
 
-  /* navigation */
+  /* navigation — thin wrappers over the router, see ./navigation */
   navigate: (route: Route) => void;
   replace: (route: Route) => void;
   back: () => void;
@@ -112,7 +101,7 @@ export interface AppState {
   deleteFolder: (folderId: ID) => Promise<void>;
 
   /* capture */
-  beginCapture: (options: { docId?: ID; folderId?: ID | null; mode?: CaptureMode; returnTo?: Route }) => Promise<void>;
+  beginCapture: (options: { docId?: ID; folderId?: ID | null; mode?: CaptureMode }) => Promise<void>;
   addCapture: (blob: Blob, edits?: Partial<PageEdits>) => Promise<ID | null>;
   endCapture: (options?: { discard?: boolean }) => Promise<void>;
   setCaptureMode: (mode: CaptureMode) => void;
@@ -155,8 +144,6 @@ export const useStore = create<AppState>()((set, get) => ({
   pages: {},
   folders: {},
   settings: { ...DEFAULT_SETTINGS },
-  route: { name: 'home' },
-  stack: [],
   toasts: [],
   unlocked: false,
   rendering: {},
@@ -194,20 +181,18 @@ export const useStore = create<AppState>()((set, get) => ({
   /* ---------------- navigation ---------------- */
 
   navigate(route) {
-    set((state) => ({ stack: [...state.stack, state.route], route, selection: [] }));
+    set({ selection: [] });
+    goTo(route);
   },
 
   replace(route) {
-    set({ route, selection: [] });
+    set({ selection: [] });
+    goTo(route, { replace: true });
   },
 
   back() {
-    set((state) => {
-      if (state.stack.length === 0) return { route: { name: 'home' } as Route, selection: [] };
-      const stack = [...state.stack];
-      const route = stack.pop() as Route;
-      return { stack, route, selection: [] };
-    });
+    set({ selection: [] });
+    goBack();
   },
 
   /* ---------------- toasts ---------------- */
@@ -445,7 +430,7 @@ export const useStore = create<AppState>()((set, get) => ({
 
   /* ---------------- capture ---------------- */
 
-  async beginCapture({ docId, folderId = null, mode, returnTo }) {
+  async beginCapture({ docId, folderId = null, mode }) {
     const state = get();
     const appending = Boolean(docId);
     const targetId = docId ?? (await state.newDocument(folderId));
@@ -458,7 +443,7 @@ export const useStore = create<AppState>()((set, get) => ({
         pendingIdFront: null,
       },
     });
-    state.navigate({ name: 'camera', docId: targetId, returnTo: returnTo ?? state.route });
+    state.navigate({ name: 'camera', docId: targetId });
   },
 
   setCaptureMode(mode) {

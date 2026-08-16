@@ -144,6 +144,16 @@ textarea:focus-visible {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Shown while the library is read out of IndexedDB, before any route paints. */
+.boot {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
 .stack {
   display: flex;
   flex-direction: column;

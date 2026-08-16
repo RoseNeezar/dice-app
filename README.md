@@ -58,6 +58,8 @@ Install it to the home screen and it works offline.
 
 ## Running it
 
+Built with [TanStack Start](https://tanstack.com/start) on Vite, in SPA mode.
+
 ```bash
 npm install
 npm run dev        # http://localhost:5173
@@ -102,12 +104,45 @@ Data lives in IndexedDB behind `src/lib/db/repository.ts`: documents and pages
 are small JSON rows, and every image is a separate blob so a 200-page document
 never has to be loaded whole.
 
+### Routing
+
+TanStack Start runs in **SPA mode**: the shell is prerendered at build time and
+the app takes over on the client. There is deliberately no server rendering and
+no server function — every document lives in IndexedDB on the device, and every
+screen needs a camera, a canvas or a worker, so there is nothing a server could
+usefully render. It is also what lets the whole app be installed and run
+offline.
+
+What the router buys is real URLs. Each screen is a file under `src/routes/`,
+so `/doc/:docId/review` can be reloaded or shared, and the phone's back gesture
+walks the history instead of leaving the app.
+
+| URL | Screen |
+| --- | --- |
+| `/` | Library |
+| `/folder/$folderId` | Folder contents |
+| `/search`, `/trash` | Search, trash |
+| `/doc/$docId` | A document's pages |
+| `/doc/$docId/camera` | Capture |
+| `/doc/$docId/review` | Crop review |
+| `/doc/$docId/page/$pageId` | Viewer |
+| `/doc/$docId/page/$pageId/edit` | Filters and adjustments |
+| `/settings` | Settings |
+
+Screens never build URLs themselves. They call `navigate({ name: 'doc', docId })`
+on the store, and `src/state/navigation.ts` is the single place that maps a
+destination onto a path — so the routes can be reshaped without touching a
+screen.
+
 ## Layout
 
 ```
 src/
+  routes/      one file per URL (TanStack Start file-based routing)
+  router.tsx   the router entry Start looks for
+  AppShell.tsx boot, theme and the passcode gate, wrapping every route
   types/       domain model — the contract everything else builds on
-  state/       zustand store: navigation, capture sessions, all mutations
+  state/       zustand store: capture sessions, all mutations; navigation.ts maps routes to URLs
   lib/
     cv/        computer vision + the worker that runs it
     db/        IndexedDB wrapper and repository

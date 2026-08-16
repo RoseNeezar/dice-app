@@ -21,6 +21,12 @@ async function importAndAccept(page: Page): Promise<void> {
   const done = page.getByRole('button', { name: /^done$/i });
   await expect(done).toBeVisible({ timeout: 90_000 });
   await done.click();
+
+  // Route transitions are asynchronous, so wait for the document screen to be
+  // the one on stage before asserting anything about it — otherwise the review
+  // screen's copy of the untouched capture is still in the DOM.
+  await expect(page.getByRole('button', { name: /add pages/i })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.crop__img')).toHaveCount(0);
 }
 
 test('starts on an empty library and offers a scan', async ({ page }) => {
@@ -33,7 +39,6 @@ test('imports a photo, detects the page and files it in the library', async ({ p
   await importAndAccept(page);
 
   // The document screen shows the processed page.
-  await expect(page.getByRole('button', { name: /add pages/i })).toBeVisible({ timeout: 30_000 });
   const pageThumb = page.locator('img').first();
   await expect(pageThumb).toBeVisible({ timeout: 30_000 });
   const decoded = await pageThumb.evaluate(
