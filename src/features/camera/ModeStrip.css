@@ -1,0 +1,50 @@
+/* Horizontally scrolling capture-mode picker. */
+
+.modestrip {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: var(--s-2) max(var(--s-4), var(--safe-left)) var(--s-2) max(var(--s-4), var(--safe-right));
+  /* Centre the strip when every chip fits, scroll from the left when they do not. */
+  justify-content: safe center;
+  touch-action: pan-x;
+}
+
+.modestrip::-webkit-scrollbar {
+  display: none;
+}
+
+.modestrip__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-full);
+  scroll-snap-align: center;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+
+.modestrip__item.is-active {
+  color: var(--camera-bg);
+  background: var(--camera-text);
+}
+
+.modestrip__item:disabled {
+  opacity: 0.45;
+}
+
+.modestrip__item:focus-visible {
+  outline: 2px solid var(--camera-text);
+  outline-offset: 2px;
+}

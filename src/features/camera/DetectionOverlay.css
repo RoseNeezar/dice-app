@@ -1,0 +1,33 @@
+/* Live page-detection outline drawn over the camera preview. */
+
+.detect {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.detect__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease);
+}
+
+.detect__svg.is-found {
+  opacity: 1;
+}
+
+.detect__shape {
+  fill: var(--detect-fill);
+  stroke: var(--detect-stroke);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+.detect__dot {
+  fill: var(--detect-stroke);
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1;
+}

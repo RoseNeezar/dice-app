@@ -1,6 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const CHROMIUM = '/opt/pw-browsers/chromium/chrome-linux/chrome';
+/**
+ * This image ships Chromium under a versioned directory and sets
+ * PLAYWRIGHT_BROWSERS_PATH, but the bundled revision does not always match the
+ * one this @playwright/test expects. Point at the binary that is actually here,
+ * and let PW_CHROMIUM override it elsewhere.
+ */
+const CHROMIUM = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 
 export default defineConfig({
   testDir: './e2e',

@@ -117,6 +117,11 @@ export function canny(img: GrayImage, options: CannyOptions = {}): GrayImage {
   const g = sobel(img);
   const { width: w, height: h, mag, dir } = g;
   const high = percentile(mag, highPercentile);
+  // A frame with no gradient anywhere (a covered lens, a blank wall) has no
+  // edges. Without this guard the thresholds both collapse to zero and the
+  // `>= high` test below promotes every pixel — turning an empty frame into a
+  // fully lit edge map that will "support" any quadrilateral put to it.
+  if (high <= 0) return createGray(w, h);
   const low = high * lowRatio;
   const suppressed = new Float32Array(w * h);
 
@@ -124,7 +129,7 @@ export function canny(img: GrayImage, options: CannyOptions = {}): GrayImage {
     for (let x = 1; x < w - 1; x++) {
       const i = y * w + x;
       const m = mag[i];
-      if (m < low) continue;
+      if (m <= 0 || m < low) continue;
       // Quantise the gradient direction to one of four neighbour pairs.
       const angle = ((dir[i] * 180) / Math.PI + 180) % 180;
       let n1: number;

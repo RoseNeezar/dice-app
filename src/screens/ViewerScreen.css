@@ -1,0 +1,183 @@
+/*
+ * Full-screen page viewer: a pager of zoomable pages under auto-hiding chrome.
+ */
+
+.viewer {
+  position: relative;
+  overflow: hidden;
+  /*
+   * The one surface in the app that is not themed. A scanned page is judged
+   * against its surround, and near-black is the only backdrop that does not
+   * tint white paper — the same reason every photo viewer is dark. The chrome
+   * on top of it stays fully themed.
+   */
+  --viewer-bg: #0c0d10;
+  background: var(--viewer-bg);
+}
+
+.viewer__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Pan, pinch, swipe and double tap are all handled in code. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.viewer__track {
+  position: absolute;
+  inset: 0;
+  transition: transform var(--dur-3) var(--ease);
+  will-change: transform;
+}
+
+.viewer__track.is-dragging {
+  transition: none;
+}
+
+.viewer__slide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+.viewer__page {
+  position: absolute;
+  inset: 0;
+  padding: var(--s-2);
+  padding-left: calc(var(--s-2) + var(--safe-left));
+  padding-right: calc(var(--s-2) + var(--safe-right));
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.viewer__holder {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.viewer__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  /* Lifts the page off the backdrop the way paper sits on a desk. */
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* The layer inside re-enables events for its own marks and handles. */
+.viewer__overlay {
+  position: absolute;
+  pointer-events: none;
+}
+
+.viewer__loading {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+}
+
+.viewer__missing {
+  max-width: 26ch;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.viewer__busy {
+  position: absolute;
+  top: calc(var(--s-4) + var(--safe-top) + var(--topbar-h));
+  right: calc(var(--s-3) + var(--safe-right));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  box-shadow: var(--sh-2);
+}
+
+/* Chrome ------------------------------------------------------------- */
+
+.viewer__chrome {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  transition: opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
+}
+
+.viewer__chrome--top {
+  top: 0;
+}
+
+.viewer__chrome--bottom {
+  bottom: 0;
+}
+
+.viewer__chrome.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.viewer__chrome--top.is-hidden {
+  transform: translateY(-100%);
+}
+
+.viewer__chrome--bottom.is-hidden {
+  transform: translateY(100%);
+}
+
+.viewer__chrome .toolbar {
+  padding-left: calc(var(--s-2) + var(--safe-left));
+  padding-right: calc(var(--s-2) + var(--safe-right));
+}
+
+/* Six actions have to fit a narrow phone without scrolling. */
+.viewer__chrome .tool-btn {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+}
+
+/* Sheets ------------------------------------------------------------- */
+
+.viewer__ocr {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.viewer__ocrtext {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  max-height: 46vh;
+}
+
+.viewer__error {
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.viewer__progress {
+  margin-top: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.viewer__note {
+  min-height: 120px;
+  resize: vertical;
+}

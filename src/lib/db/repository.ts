@@ -208,9 +208,18 @@ export async function deleteFolderTree(id: ID): Promise<void> {
     }
   }
   const now = Date.now();
+  // Every document in a deleted folder loses its folder reference, including
+  // ones already in the trash: leaving a stale id behind would file them into
+  // a folder that no longer exists when they are restored, hiding them from
+  // every view. Only documents that were still live are additionally trashed.
   const touched = docs
-    .filter((doc) => doc.folderId !== null && doomed.has(doc.folderId) && doc.deletedAt === null)
-    .map((doc) => ({ ...doc, folderId: null, deletedAt: now, updatedAt: now }));
+    .filter((doc) => doc.folderId !== null && doomed.has(doc.folderId))
+    .map((doc) => ({
+      ...doc,
+      folderId: null,
+      deletedAt: doc.deletedAt ?? now,
+      updatedAt: now,
+    }));
   await saveDocuments(touched);
   await delMany(STORE.folders, [...doomed]);
 }
@@ -276,28 +285,33 @@ export async function storageUsage(): Promise<StorageUsage> {
  * (app killed mid-render) are the usual source.
  */
 export async function collectGarbage(): Promise<number> {
-  const pages = await getAll<Page>(STORE.pages);
-  const live = new Set<ID>();
-  for (const page of pages) {
-    if (page.originalBlobId) live.add(page.originalBlobId);
-    if (page.processedBlobId) live.add(page.processedBlobId);
-    if (page.thumbBlobId) live.add(page.thumbBlobId);
-    for (const annotation of page.annotations) {
-      if ('blobId' in annotation && annotation.blobId) live.add(annotation.blobId);
+  // Pages, signatures and blob keys are read — and the orphans deleted — in a
+  // single transaction. Reading them separately leaves a window in which a
+  // page saved between the two reads has its brand-new blob collected.
+  return transact([STORE.pages, STORE.kv, STORE.blobs], async (stores) => {
+    const pages = (await requestToPromise(stores[STORE.pages].getAll())) as Page[];
+    const live = new Set<ID>();
+    for (const page of pages) {
+      if (page.originalBlobId) live.add(page.originalBlobId);
+      if (page.processedBlobId) live.add(page.processedBlobId);
+      if (page.thumbBlobId) live.add(page.thumbBlobId);
+      for (const annotation of page.annotations) {
+        if ('blobId' in annotation && annotation.blobId) live.add(annotation.blobId);
+      }
     }
-  }
-  const signatures = (await getKv<ID[]>('signatures')) ?? [];
-  for (const id of signatures) live.add(id);
 
-  const orphans: ID[] = [];
-  await transact([STORE.blobs], async (stores) => {
-    const keys = await requestToPromise(stores[STORE.blobs].getAllKeys());
-    for (const key of keys as ID[]) {
-      if (!live.has(key)) orphans.push(key);
+    const signatures = ((await requestToPromise(stores[STORE.kv].get('signatures'))) ?? []) as ID[];
+    for (const id of signatures) live.add(id);
+
+    const keys = (await requestToPromise(stores[STORE.blobs].getAllKeys())) as ID[];
+    let removed = 0;
+    for (const key of keys) {
+      if (live.has(key)) continue;
+      stores[STORE.blobs].delete(key);
+      removed++;
     }
+    return removed;
   });
-  await delMany(STORE.blobs, orphans);
-  return orphans.length;
 }
 
 /** Permanently empty the trash. */

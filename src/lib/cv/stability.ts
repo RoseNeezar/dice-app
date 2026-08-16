@@ -61,7 +61,10 @@ export class AutoCaptureController {
   private stable = 0;
   private lastFrame: GrayImage | null = null;
   private lastQuad: Quad | null = null;
-  private lastFireAt = 0;
+  // Not 0: callers feed `performance.now()`, which starts near zero, so a zero
+  // here would hold the shutter closed for a whole cooldown after the camera
+  // opens — exactly when the user is pointing at their first page.
+  private lastFireAt = Number.NEGATIVE_INFINITY;
 
   constructor(config: Partial<AutoCaptureConfig> = {}) {
     this.config = { ...DEFAULT_AUTO_CAPTURE, ...config };

@@ -176,11 +176,12 @@ export function boxBlurGray(img: GrayImage, radius: number): GrayImage {
 export function flattenIllumination(img: RasterImage, strength = 1): RasterImage {
   const gray = grayscale(img);
   const bg = estimateIllumination(gray);
+  const bgMap = Float32Array.from(bg.data);
   const out = cloneRaster(img);
   const { width: w, height: h } = img;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      const b = sampleMap(toFloat(bg), bg.width, bg.height, x, y, w, h);
+      const b = sampleMap(bgMap, bg.width, bg.height, x, y, w, h);
       const denom = Math.max(24, b);
       const gain = 1 + strength * (255 / denom - 1);
       const p = (y * w + x) * 4;
@@ -190,16 +191,6 @@ export function flattenIllumination(img: RasterImage, strength = 1): RasterImage
     }
   }
   return out;
-}
-
-const floatCache = new WeakMap<GrayImage, Float32Array>();
-function toFloat(img: GrayImage): Float32Array {
-  let f = floatCache.get(img);
-  if (!f) {
-    f = Float32Array.from(img.data);
-    floatCache.set(img, f);
-  }
-  return f;
 }
 
 /** Per-channel percentile stretch — a robust grey-world white balance. */

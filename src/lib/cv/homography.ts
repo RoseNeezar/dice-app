@@ -60,49 +60,69 @@ export function applyHomography(h: Matrix3, x: number, y: number): { x: number; 
 }
 
 /**
+ * Focal length assumed when the geometry cannot pin it down, as a multiple of
+ * the frame's longest edge. 0.9 is a ~58° field of view across that edge,
+ * between a phone's main camera (wider) and a webcam or tablet (narrower).
+ *
+ * Callers that know better — a capture whose EXIF carries a real focal length,
+ * for instance — should pass it instead; the estimate is then exact.
+ */
+export const ASSUMED_FOCAL_RATIO = 0.9;
+
+/**
  * Recover the true width/height ratio of a rectangle seen in perspective.
  *
- * Uses the two vanishing points of the projected rectangle to solve for the
- * focal length, then for the aspect ratio (Zhang's rectangle-metric method).
- * Falls back to the mean of the opposing edge lengths when the quad is close
- * to a parallel projection or the focal-length estimate is imaginary.
+ * Works from the homography that maps the unit square onto the quad. If that
+ * homography is `H = K · [r1·w, r2·h, t]` for a pinhole `K` and orthonormal
+ * `r1, r2`, then `|K⁻¹h1| / |K⁻¹h2|` is exactly the width/height ratio, and
+ * `(K⁻¹h1)·(K⁻¹h2) = 0` is what fixes the focal length.
+ *
+ * Solving for the focal length needs both vanishing points to be finite. When
+ * the page leans about a single axis — a phone held square-on over a desk,
+ * which is the most common way anyone scans anything — one of them runs off to
+ * infinity and the focal length is genuinely unrecoverable from one view.
+ * Rather than give up and return the naive edge-length ratio (stretched by up
+ * to 30% at realistic tilts), fall back to `focalPx`: assuming a plausible
+ * lens and keeping the projective correction lands within a few percent, which
+ * pretending the view is affine does not.
+ *
+ * @param focalPx Focal length in pixels, when the caller knows it. Defaults to
+ *   {@link ASSUMED_FOCAL_RATIO} of the frame's longest edge.
  */
-export function estimateAspectRatio(quad: Quad, imageSize: Size): number {
-  const u0 = imageSize.width / 2;
-  const v0 = imageSize.height / 2;
-  // m1 = top-left, m2 = top-right, m3 = bottom-left, m4 = bottom-right.
-  const m1 = { x: quad[0].x - u0, y: quad[0].y - v0 };
-  const m2 = { x: quad[1].x - u0, y: quad[1].y - v0 };
-  const m3 = { x: quad[3].x - u0, y: quad[3].y - v0 };
-  const m4 = { x: quad[2].x - u0, y: quad[2].y - v0 };
-
+export function estimateAspectRatio(quad: Quad, imageSize: Size, focalPx?: number): number {
   const widthMean = (dist(quad[0], quad[1]) + dist(quad[3], quad[2])) / 2;
   const heightMean = (dist(quad[0], quad[3]) + dist(quad[1], quad[2])) / 2;
   const fallback = heightMean < 1e-6 ? 1 : widthMean / heightMean;
 
-  const den2 = (m2.y - m4.y) * m3.x - (m2.x - m4.x) * m3.y + m2.x * m4.y - m2.y * m4.x;
-  const den3 = (m3.y - m4.y) * m2.x - (m3.x - m4.x) * m2.y + m3.x * m4.y - m3.y * m4.x;
-  if (Math.abs(den2) < 1e-9 || Math.abs(den3) < 1e-9) return fallback;
+  const unit: Quad = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 1, y: 1 },
+    { x: 0, y: 1 },
+  ];
+  const h = solveHomography(unit, quad);
 
-  const k2 = ((m1.y - m4.y) * m3.x - (m1.x - m4.x) * m3.y + m1.x * m4.y - m1.y * m4.x) / den2;
-  const k3 = ((m1.y - m4.y) * m2.x - (m1.x - m4.x) * m2.y + m1.x * m4.y - m1.y * m4.x) / den3;
+  const u0 = imageSize.width / 2;
+  const v0 = imageSize.height / 2;
+  // Columns of H: h1 spans the width direction, h2 the height direction.
+  const a1 = h[0] - u0 * h[6];
+  const b1 = h[3] - v0 * h[6];
+  const c1 = h[6];
+  const a2 = h[1] - u0 * h[7];
+  const b2 = h[4] - v0 * h[7];
+  const c2 = h[7];
 
-  // k2 == k3 == 1 means the vanishing points are at infinity: an affine view,
-  // where the measured edge lengths already give the true ratio.
-  if (Math.abs(k2 - 1) < 1e-6 || Math.abs(k3 - 1) < 1e-6) return fallback;
+  let f2 = -(a1 * a2 + b1 * b2) / (c1 * c2);
+  if (!Number.isFinite(f2) || f2 <= 0) {
+    const assumed = focalPx ?? ASSUMED_FOCAL_RATIO * Math.max(imageSize.width, imageSize.height);
+    f2 = assumed * assumed;
+  }
 
-  const f2 =
-    -((k3 * m3.y - m1.y) * (k2 * m2.y - m1.y) + (k3 * m3.x - m1.x) * (k2 * m2.x - m1.x)) /
-    ((k3 - 1) * (k2 - 1));
-  if (!Number.isFinite(f2) || f2 <= 0) return fallback;
+  const n1 = Math.sqrt((a1 * a1 + b1 * b1) / f2 + c1 * c1);
+  const n2 = Math.sqrt((a2 * a2 + b2 * b2) / f2 + c2 * c2);
+  if (!Number.isFinite(n1) || !Number.isFinite(n2) || n2 <= 1e-12) return fallback;
 
-  const num =
-    (k2 - 1) ** 2 + (k2 * m2.y - m1.y) ** 2 / f2 + (k2 * m2.x - m1.x) ** 2 / f2;
-  const den =
-    (k3 - 1) ** 2 + (k3 * m3.y - m1.y) ** 2 / f2 + (k3 * m3.x - m1.x) ** 2 / f2;
-  if (den <= 0 || num <= 0) return fallback;
-
-  const ratio = Math.sqrt(num / den);
+  const ratio = n1 / n2;
   if (!Number.isFinite(ratio) || ratio <= 0) return fallback;
   // Guard against wild estimates from near-degenerate quads.
   if (ratio > fallback * 3 || ratio < fallback / 3) return fallback;
@@ -113,8 +133,8 @@ export function estimateAspectRatio(quad: Quad, imageSize: Size): number {
  * Pick the pixel dimensions of the dewarped page: keep the captured detail
  * (longest measured edge) but impose the recovered aspect ratio.
  */
-export function estimateOutputSize(quad: Quad, imageSize: Size, maxEdge: number): Size {
-  const ratio = estimateAspectRatio(quad, imageSize);
+export function estimateOutputSize(quad: Quad, imageSize: Size, maxEdge: number, focalPx?: number): Size {
+  const ratio = estimateAspectRatio(quad, imageSize, focalPx);
   const widthMean = Math.max(dist(quad[0], quad[1]), dist(quad[3], quad[2]));
   const heightMean = Math.max(dist(quad[0], quad[3]), dist(quad[1], quad[2]));
 

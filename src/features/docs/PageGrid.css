@@ -1,0 +1,204 @@
+/* Reorderable page thumbnails. */
+
+.pagegrid {
+  position: relative;
+  padding: var(--s-3);
+  padding-left: calc(var(--s-3) + var(--safe-left));
+  padding-right: calc(var(--s-3) + var(--safe-right));
+}
+
+.pagegrid__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--s-4) var(--s-3);
+}
+
+@media (min-width: 720px) {
+  .pagegrid__list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+.pagegrid__cell {
+  min-width: 0;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.pagegrid__cell.is-dragging {
+  opacity: 0.3;
+}
+
+.pagegrid__cell.is-dragging .ptile__handle {
+  visibility: hidden;
+}
+
+/* Tile ------------------------------------------------------------- */
+
+.ptile {
+  position: relative;
+}
+
+.ptile__hit {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-1);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+
+.ptile__hit:active {
+  transform: scale(0.97);
+}
+
+.ptile__hit img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.ptile__placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-3);
+}
+
+.ptile__busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--scrim);
+}
+
+.ptile__index,
+.ptile__ocr {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-full);
+  background: var(--scrim);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+.ptile__index {
+  left: 5px;
+  bottom: 5px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ptile__ocr {
+  left: 5px;
+  top: 5px;
+  width: 22px;
+  height: 22px;
+}
+
+.ptile__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  border: 2px solid #fff;
+  background: var(--scrim);
+  color: #fff;
+}
+
+.ptile__check.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.ptile.is-selected .ptile__hit {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Drag handle ------------------------------------------------------ */
+
+.ptile__handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  /* The grid scrolls vertically, so the handle has to claim the gesture. */
+  touch-action: none;
+}
+
+.ptile__handle::before {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: var(--r-full);
+  background: var(--scrim);
+  backdrop-filter: blur(6px);
+  transition: transform var(--dur-1) var(--ease);
+}
+
+.ptile__handle:active::before {
+  transform: scale(1.14);
+}
+
+.ptile__handle svg {
+  position: relative;
+}
+
+/* Drag feedback ---------------------------------------------------- */
+
+.pagegrid__marker {
+  position: absolute;
+  z-index: 3;
+  width: 3px;
+  margin-left: -2px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  pointer-events: none;
+}
+
+.pagegrid__ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: var(--sh-3);
+  opacity: 0.94;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.pagegrid__ghost img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}

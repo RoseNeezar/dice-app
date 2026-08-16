@@ -1,0 +1,205 @@
+/* The export sheet, and the PDF option rows it shares with the settings screen. */
+
+/* Option rows ------------------------------------------------------ */
+
+.opt-row {
+  display: block;
+  margin: var(--s-3) 0;
+}
+
+.opt-row__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+
+.opt-row__hint {
+  display: block;
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 6px;
+}
+
+/* A native select, wrapped so the chevron can sit over it. */
+.opt-select {
+  position: relative;
+  display: block;
+  color: var(--text-3);
+}
+
+.opt-select select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 40px 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  appearance: none;
+  outline: none;
+  transition: border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+}
+
+.opt-select select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.opt-select > svg {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.opt-password {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.opt-password input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+}
+
+/* Keeps the reveal button a 44px target without stretching the row. */
+.opt-password .icon-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  color: var(--text-2);
+}
+
+/* PDF options ------------------------------------------------------ */
+
+.pdfopt {
+  display: block;
+  margin-top: var(--s-2);
+}
+
+.pdfopt__nested {
+  margin: var(--s-1) 0 var(--s-3);
+  padding: var(--s-1) var(--s-3) var(--s-3);
+  border-left: 2px solid var(--accent-soft);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--surface-2);
+}
+
+.pdfopt__nested .opt-row:first-child {
+  margin-top: var(--s-2);
+}
+
+/* Sheet body ------------------------------------------------------- */
+
+.export__scope {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: var(--s-3);
+}
+
+.export__formats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+@media (max-width: 340px) {
+  .export__formats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.export__format {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 92px;
+  padding: var(--s-3) 6px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  text-align: center;
+  transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+
+.export__format:active {
+  transform: scale(0.97);
+}
+
+.export__format.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.export__format-label {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.export__format.is-on .export__format-label {
+  color: var(--accent);
+}
+
+.export__format-hint {
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--text-3);
+}
+
+.export__note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 0;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.export__note--warn {
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.export__note--warn svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+/* Progress --------------------------------------------------------- */
+
+.export__running {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-5) 0 var(--s-4);
+  text-align: center;
+}
+
+.export__status {
+  font-size: 15px;
+  font-weight: 600;
+  /* Two lines of headroom so a longer stage name cannot jog the bar. */
+  min-height: 2.9em;
+}
+
+.export__percent {
+  font-size: 13px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}

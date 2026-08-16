@@ -1,0 +1,67 @@
+/* Camera shutter with an auto-capture progress ring. */
+
+.shutter {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--camera-bg);
+  touch-action: manipulation;
+}
+
+.shutter:disabled {
+  cursor: default;
+}
+
+.shutter__ring {
+  position: absolute;
+  inset: 0;
+  width: 80px;
+  height: 80px;
+  /* Start the progress arc at 12 o'clock. */
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.shutter__track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 3;
+}
+
+.shutter__progress {
+  fill: none;
+  stroke: var(--detect-stroke);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--dur-2) linear;
+}
+
+.shutter__core {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: var(--camera-text);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  transition: transform var(--dur-1) var(--ease), background var(--dur-2) var(--ease);
+}
+
+.shutter:active:not(:disabled) .shutter__core {
+  transform: scale(0.88);
+}
+
+.shutter.is-busy .shutter__core {
+  background: rgba(255, 255, 255, 0.55);
+  animation: shutter-pulse 900ms var(--ease) infinite;
+}
+
+@keyframes shutter-pulse {
+  50% {
+    transform: scale(0.9);
+  }
+}

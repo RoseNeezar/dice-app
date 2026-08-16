@@ -1,0 +1,252 @@
+/* The library: folder row, filter chips and the document grid. */
+
+.home {
+  position: relative;
+}
+
+.home .screen__body {
+  /* Clears the floating action buttons so the last row is always reachable. */
+  padding-bottom: calc(96px + var(--safe-bottom));
+}
+
+/* Search ----------------------------------------------------------- */
+
+.home__searchbox {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: var(--s-2);
+  padding-left: var(--s-3);
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+.home__searchbox input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+}
+
+.home__searchbox input:focus-visible {
+  box-shadow: none;
+}
+
+/* The clear button has to keep a 40px target without inflating the pill. */
+.home__searchbox .icon-btn {
+  width: 36px;
+  height: 36px;
+  margin-right: 2px;
+}
+
+.home__results {
+  padding: var(--s-3) var(--s-4) 0;
+  padding-left: calc(var(--s-4) + var(--safe-left));
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+/* Folders ---------------------------------------------------------- */
+
+.home__folders {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4) var(--s-1);
+  padding-left: calc(var(--s-4) + var(--safe-left));
+  padding-right: calc(var(--s-4) + var(--safe-right));
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.home__folders::-webkit-scrollbar {
+  display: none;
+}
+
+.home__folder {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 46px;
+  max-width: 220px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  scroll-snap-align: start;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: background var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+
+.home__folder:hover {
+  background: var(--surface-2);
+}
+
+.home__folder:active {
+  transform: scale(0.97);
+}
+
+.home__folder-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home__folder-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* Filters ---------------------------------------------------------- */
+
+.home__filters {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4) var(--s-1);
+  padding-left: calc(var(--s-4) + var(--safe-left));
+  padding-right: calc(var(--s-4) + var(--safe-right));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.home__filters::-webkit-scrollbar {
+  display: none;
+}
+
+.home__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+
+.home__chip.is-on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.home__chip-count {
+  font-size: 11px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.home__chip.is-on .home__chip-count {
+  color: var(--accent);
+}
+
+/* Documents -------------------------------------------------------- */
+
+.home__docs {
+  padding: var(--s-3) var(--s-4);
+  padding-left: calc(var(--s-4) + var(--safe-left));
+  padding-right: calc(var(--s-4) + var(--safe-right));
+}
+
+.home__docs--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--s-5) var(--s-3);
+}
+
+@media (min-width: 900px) {
+  .home__docs--grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+}
+
+.home__docs--list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+/* Action buttons --------------------------------------------------- */
+
+.home__fabs {
+  position: absolute;
+  right: calc(var(--s-4) + var(--safe-right));
+  bottom: calc(var(--s-5) + var(--safe-bottom));
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+/* The FAB positions itself; inside this stack the stack does the placing. */
+.home__fabs .fab {
+  position: static;
+}
+
+.home__import {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  box-shadow: var(--sh-2);
+  transition: transform var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+
+.home__import:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.home__import:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.home__import:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* Storage ---------------------------------------------------------- */
+
+.home__storage {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.home__storage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: 13px;
+  color: var(--text-2);
+}

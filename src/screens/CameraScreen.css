@@ -1,0 +1,324 @@
+/*
+ * The viewfinder is dark chrome in every theme — a light UI around a live
+ * preview blows out the eye's adaptation and makes framing harder — so this is
+ * the one screen that uses the fixed --camera-* tokens instead of --surface.
+ */
+
+.camera {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--camera-bg);
+  color: var(--camera-text);
+  overflow: hidden;
+  user-select: none;
+}
+
+.camera__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* The preview must never pan or rubber-band under a drag. Scrollable chrome
+     (the mode strip, the zoom slider) sits outside the stage and keeps its own
+     touch-action, which an ancestor `none` would otherwise override. */
+  touch-action: none;
+}
+
+.camera__stage.is-mirrored {
+  /* Mirrors the preview and its overlay together so the outline still tracks. */
+  transform: scaleX(-1);
+}
+
+.camera__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--camera-bg);
+}
+
+.camera__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.26) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.26) 1px, transparent 1px);
+  background-size: 33.333% 33.333%;
+  background-position: -1px -1px;
+}
+
+.camera__flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #fff;
+  opacity: 0;
+  animation: camera-flash 260ms var(--ease);
+}
+
+@keyframes camera-flash {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Chrome ----------------------------------------------------------- */
+
+.camera__top {
+  /* Floats over the preview instead of taking part in the column flow. */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: calc(var(--safe-top) + var(--s-2)) max(var(--s-2), var(--safe-right)) var(--s-2)
+    max(var(--s-2), var(--safe-left));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
+}
+
+.camera__top-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.camera__controls {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding-bottom: max(var(--s-3), var(--safe-bottom));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 55%, transparent);
+}
+
+.camera__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 auto;
+  width: min(320px, 76%);
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-full);
+  background: var(--camera-chrome);
+  color: var(--camera-text);
+  touch-action: pan-x;
+}
+
+.camera__zoom input[type='range'] {
+  flex: 1;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+}
+
+.camera__zoom input[type='range']::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.camera__zoom input[type='range']::-moz-range-track {
+  height: 3px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.camera__zoom input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8.5px;
+  border-radius: 50%;
+  background: var(--camera-text);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.camera__zoom input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--camera-text);
+}
+
+.camera__status {
+  min-height: 20px;
+  margin: 0 auto;
+  padding: 0 var(--s-4);
+  max-width: 34rem;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.camera__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) max(var(--s-3), var(--safe-right)) var(--s-2) max(var(--s-3), var(--safe-left));
+}
+
+.camera__bar-side {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.camera__bar-side--end {
+  justify-content: flex-end;
+}
+
+.camera__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 var(--s-4);
+  border-radius: var(--r-full);
+  background: var(--camera-text);
+  color: var(--camera-bg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: opacity var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+
+.camera__done:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.camera__done:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Captured-page stack ---------------------------------------------- */
+
+.camera__stack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 46px;
+}
+
+.camera__thumb {
+  display: block;
+  width: 34px;
+  height: 46px;
+  margin-left: -22px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  background: var(--camera-chrome);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.camera__thumb:first-child {
+  margin-left: 0;
+}
+
+.camera__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Failure panel ---------------------------------------------------- */
+
+.camera__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: calc(var(--safe-top) + var(--s-7)) max(var(--s-5), var(--safe-right))
+    calc(var(--safe-bottom) + var(--s-5)) max(var(--s-5), var(--safe-left));
+  text-align: center;
+  background: var(--camera-bg);
+}
+
+.camera__fallback-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-full);
+  background: var(--camera-chrome);
+  color: var(--camera-text);
+}
+
+.camera__fallback h2 {
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.camera__fallback p {
+  max-width: 30rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+
+.camera__fallback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+/* Scanned code sheet ------------------------------------------------ */
+
+.camera__scan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.camera__scan-format {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.camera__scan-text {
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  /* The screen suppresses selection; the payload must stay selectable. */
+  user-select: text;
+  -webkit-user-select: text;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.camera__scan-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}

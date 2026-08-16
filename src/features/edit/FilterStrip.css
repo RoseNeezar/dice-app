@@ -1,0 +1,95 @@
+/* Horizontal filter chooser with per-page preview thumbnails. */
+
+.fstrip {
+  flex-shrink: 0;
+}
+
+.fstrip__row {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-3) var(--s-2);
+  padding-left: calc(var(--s-3) + var(--safe-left));
+  padding-right: calc(var(--s-3) + var(--safe-right));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fstrip__tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: 68px;
+  padding: 4px 0 2px;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  scroll-snap-align: center;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.fstrip__tile:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fstrip__tile.is-active {
+  color: var(--accent);
+}
+
+.fstrip__thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 76px;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 2px solid transparent;
+  box-shadow: var(--sh-1);
+  transition: border-color var(--dur-1) var(--ease);
+}
+
+.fstrip__tile.is-active .fstrip__thumb {
+  border-color: var(--accent);
+}
+
+.fstrip__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fstrip__thumb--action {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-2);
+  box-shadow: none;
+}
+
+.fstrip__skeleton {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface-3) 50%, var(--surface-2) 70%);
+  background-size: 300% 100%;
+  animation: fstrip-shimmer 1.2s linear infinite;
+}
+
+@keyframes fstrip-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+.fstrip__label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}

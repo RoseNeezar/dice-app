@@ -13,6 +13,9 @@ import {
 /** Longest edge of the frame the detector works on. Detection is scale free. */
 const WORK_EDGE = 384;
 
+/** Half-width, in pixels, of the window {@link edgeSupport} samples per point. */
+const SUPPORT_RADIUS = 2;
+
 export interface DetectOptions {
   workEdge?: number;
   /** Reject quads covering less than this fraction of the frame. */
@@ -56,6 +59,23 @@ export function detectDocument(input: GrayImage | RasterImage, options: DetectOp
 
 function isRaster(img: GrayImage | RasterImage): img is RasterImage {
   return img.data.length === img.width * img.height * 4;
+}
+
+/**
+ * The hit rate {@link edgeSupport} would report for an arbitrary quad drawn on
+ * this edge map — the probability that at least one of the `(2r+1)²` cells it
+ * samples is lit, if the lit pixels were scattered independently.
+ *
+ * This is the yardstick a candidate has to beat. In uncorrelated noise a 13%
+ * dense map already lights up 97% of 5×5 windows, so raw support endorses
+ * every quad equally; only support *above chance* is evidence of a real edge.
+ */
+export function chanceHitRate(edges: GrayImage, radius: number): number {
+  let lit = 0;
+  for (let i = 0; i < edges.data.length; i++) if (edges.data[i] !== 0) lit++;
+  const density = lit / edges.data.length;
+  const cells = (2 * radius + 1) ** 2;
+  return 1 - (1 - density) ** cells;
 }
 
 function normalize(quad: Quad, w: number, h: number): Quad {
@@ -131,7 +151,10 @@ export function houghLines(edges: GrayImage, options: HoughOptions = {}): HesseL
           const rr = flip ? rhoBins - 1 - (r + dr) : r + dr;
           if (rr < 0 || rr >= rhoBins) continue;
           const other = acc[tt * rhoBins + rr];
-          if (other > votes) {
+          // Ties are broken by scan order, so a thick bar yields one line
+          // rather than several identical ones eating the `maxLines` budget
+          // that the document's other three sides need.
+          if (other > votes || (other === votes && (tt < t || (tt === t && rr < r)))) {
             isMax = false;
             break;
           }
@@ -176,6 +199,10 @@ export function bestQuadFromLines(lines: HesseLine[], edges: GrayImage, minAreaR
   const a = groupA.slice(0, 8);
   const b = groupB.slice(0, 8);
   const frameArea = edges.width * edges.height;
+  const chance = chanceHitRate(edges, SUPPORT_RADIUS);
+  // A map so dense that every window is lit carries no positional information
+  // at all; nothing drawn on it can be evidence of anything.
+  if (chance >= 0.999) return null;
   let best: ScoredQuad | null = null;
 
   for (let i = 0; i < a.length - 1; i++) {
@@ -212,11 +239,13 @@ export function bestQuadFromLines(lines: HesseLine[], edges: GrayImage, minAreaR
           const angles = quadAngles(quad);
           if (angles.some((deg) => deg < 50 || deg > 130)) continue;
 
-          const support = edgeSupport(quad, edges);
+          const support = edgeSupport(quad, edges, SUPPORT_RADIUS);
+          // Only the margin over what an arbitrary quad would score counts.
+          const evidence = Math.max(0, (support - chance) / (1 - chance));
           const areaScore = Math.min(1, area / frameArea / 0.85);
           const angleScore =
             1 - Math.min(1, angles.reduce((acc, deg) => acc + Math.abs(deg - 90), 0) / 160);
-          const score = support * 0.68 + areaScore * 0.2 + angleScore * 0.12;
+          const score = evidence * 0.68 + areaScore * 0.2 + angleScore * 0.12;
           if (!best || score > best.score) best = { quad, score };
         }
       }
@@ -230,7 +259,7 @@ export function bestQuadFromLines(lines: HesseLine[], edges: GrayImage, minAreaR
  * over the four sides. This is what separates a real page border from four
  * unrelated lines that happen to form a plausible rectangle.
  */
-export function edgeSupport(quad: Quad, edges: GrayImage, radius = 2): number {
+export function edgeSupport(quad: Quad, edges: GrayImage, radius = SUPPORT_RADIUS): number {
   let total = 0;
   for (let s = 0; s < 4; s++) {
     const p1 = quad[s];
@@ -292,7 +321,9 @@ export function edgeExtentQuad(edges: GrayImage, minAreaRatio: number): ScoredQu
   const area = (x1 - x0) * (y1 - y0);
   if (area < w * h * minAreaRatio) return null;
   // A box that spans the whole frame tells the user nothing beyond "no crop".
-  if (area > w * h * 0.985) return null;
+  // The ceiling accounts for the 2% of edge mass trimmed off each side above,
+  // which caps an evenly covered frame at roughly 92% rather than 100%.
+  if (area > w * h * 0.88) return null;
 
   const quad: Quad = [
     { x: x0, y: y0 },

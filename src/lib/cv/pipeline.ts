@@ -42,7 +42,13 @@ export function predictRenderSize(source: Size, edits: PageEdits, maxEdge = 2400
   } else {
     const longest = Math.max(source.width, source.height);
     const k = longest > maxEdge ? maxEdge / longest : 1;
-    size = { width: Math.round(source.width * k), height: Math.round(source.height * k) };
+    // Matches fitRaster's own floor: a very long, thin source must still
+    // predict at least one pixel on the short axis, or callers size a canvas
+    // or a PDF box to zero area.
+    size = {
+      width: Math.max(1, Math.round(source.width * k)),
+      height: Math.max(1, Math.round(source.height * k)),
+    };
   }
   if (edits.rotation === 90 || edits.rotation === 270) {
     return { width: size.height, height: size.width };

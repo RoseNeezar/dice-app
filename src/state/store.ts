@@ -19,7 +19,7 @@ import type {
 import { DEFAULT_EDITS, DEFAULT_SETTINGS } from '@/types';
 import * as repo from '@/lib/db/repository';
 import { cv } from '@/lib/cv/client';
-import { blobSize } from '@/lib/image/io';
+import { blobSize, blobToRaster } from '@/lib/image/io';
 import { releaseBlobUrls } from '@/lib/image/blobUrls';
 
 /* ------------------------------------------------------------------ */
@@ -505,8 +505,19 @@ export const useStore = create<AppState>()((set, get) => ({
     }
     const docId = options.docId ?? (await state.newDocument(options.folderId ?? null, options.title));
     for (const file of images) {
-      // Imported photos are usually already cropped, so no auto-detect here.
-      await addPageToDocument(set, get, docId, file, { quad: null });
+      // A photo from the gallery is usually a photo *of* a document, so it
+      // gets the same edge detection a live capture would. Detection is
+      // scale-free (it returns normalized corners), so a downscaled decode is
+      // enough and keeps a 12MP import responsive. A frame with no confident
+      // page just keeps its full extent.
+      let quad: Quad | null = null;
+      try {
+        const raster = await blobToRaster(file, 1200);
+        quad = (await cv.detect(raster)).quad;
+      } catch {
+        quad = null;
+      }
+      await addPageToDocument(set, get, docId, file, { quad });
     }
     return docId;
   },
